@@ -2,31 +2,19 @@
  include "connection.php";
  class Api extends Connecting{
 
- var    $first_name;
- var    $last_name;
- var    $user_email;
- var    $p_password;
- var    $home_address;
- var    $cellphone;
- var    $postal_address;
- var    $locations;
- var   $user_type;
- var    $gender;
- var    $files;
+   var $first_name;
+
+ ////////////////////
+
+  var $emailt;
+  var $pwp;
 
 
- function __construct(){
- 	$this->first_name=$_POST['first_name'];
-    $this->last_name=$_POST['last_name'];
-    $this->user_email=$_POST['user_email'];
-    $this->p_password=$_POST['p_password'];
-    $this->home_address=$_POST['home_address'];
-    $this->cellphone=$_POST['cellphone'];
-    $this->postal_address=$_POST['postal_address'];
-    $this->locations=$_POST['locations'];
-    $this->user_type=$_POST['user_type'];
-    $this->gender=$_POST['gender'];
-    $this->files=$_POST['files'];
+ function __construct($emali,$pins){
+ 	
+    $this->emailt=$emali;
+    $this->pwp=$pins;
+    
  }
  function getConn($query){
 
@@ -35,74 +23,59 @@
      return  $results;
 }
  
- function insertuser(){
+ function login(){
 
- $image_file=$_FILES["file"]["name"];
+   //http://localhost/AJAX_LOGIN/back_end.php?action=login
+ 	 //session_start();
+        
+     // $first_name=$_SESSION['first_name']=htmlspecialchars($_POST['first_name']);
+     // $emailt=$_SESSION['emailt']=htmlspecialchars($_POST['emailt']); //takes data from one page to another
 
-$dir="upload/".basename($_FILES["file"]["name"]);
- $location='http://localhost/BAXTERBATER2/'.$dir;
- move_uploaded_file($_FILES["file"]["tmp_name"], $dir);//here we move file to a new location
+ $sqls="SELECT first_name,user_email,P_password,user_type from user where user_email='$this->emailt' and P_password='$this->pwp'";
 
- 	$sql="INSERT INTO user(first_name,last_name,user_email,p_password,home_address,cellphone,postal_address,locations,user_type,gender,user_picture)
-           VALUES('$this->first_name','$this->last_name','$this->user_email','$this->p_password','$this->home_address','$this->cellphone','$this->postal_address','$this->locations','$this->user_type','$this->gender','$location')";
+  $results=$this->getConn($sqls);
 
-     $results=$this->getConn($sql);
-     if($results){
-     	echo "one record inserted";
-     }
-
-     echo "ooops";
-
+     // if results returns rows run this statement 
+  if($results && mysqli_num_rows($results) > 0){
+  $row = mysqli_fetch_assoc($results);
+    
+    $first_name=$_SESSION['first_name']=$row['first_name'];///my session
+  if($row['user_type'] == 'student')
+   {
+   
+  echo 'messages.php';
  }
-
- function displayAll(){
- 	$sql="SELECT * from user";
- 	    $results=$this->getConn($sql);
- 	   $info=array();
- 	    while($row=mysqli_fetch_assoc($results))
- 	    {
-          $info[]=$row;
- 	    }
- 	   echo json_encode($info);
- 	    return $info;
- }
+  else if($row['user_type'] == 'employee')
+  {
+    echo "management.php";
+  }
+  
+ }//end of statement of when we found rows
+else
+{
+  echo "User Not Found"; //if we didn' find match we run this
 }
 
+ return $results;
 
-if(isset($_POST['action'])){
+ 
+
+ }
+ 
+
+}
+
+     if(isset($_POST['action'])){
 	$action=$_POST['action'];
 
-	 if($action == 'insertuser')
+	 if($action == 'login')
 	{
-	$first_name=$_POST['first_name'];
-    $last_name=$_POST['last_name'];
-    $user_email=$_POST['user_email'];
-    $p_password=$_POST['p_password'];
-    $home_address=$_POST['home_address'];
-    $cellphone=$_POST['cellphone'];
-    $postal_address=$_POST['postal_address'];
-    $locations=$_POST['locations'];
-    $user_type=$_POST['user_type'];
-    $gender=$_POST['gender'];
-    $files=$_POST['files'];
-;
-		$api_object=new Api();
-		$api_object->insertuser();
+
+		  $emailt=$_POST['emailt'];
+      $pwp=$_POST['pwp'];
+		$api_object=new Api($emailt,$pwp);
+		$api_object->login();
 	}
-
-
-}
-
-if(isset($_GET['action'])){
-	$action=$_GET['action'];
-
-	 if($action == 'displayAll')
-	{
-		$api_object=new Api();
-		$api_object->displayAll();
-	}
-
-
 }  
 
 
